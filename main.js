@@ -1,82 +1,65 @@
-const image = document.getElementById('image'); // The image we want to classify
+const image = document.getElementById('image');
 const dropContainer = document.getElementById('container');
 const warning = document.getElementById('warning');
 const fileInput = document.getElementById('fileUploader');
+const resultsBox = document.getElementById('results');
 
 function preventDefaults(e) {
-  e.preventDefault()
-  e.stopPropagation()
-};
+  e.preventDefault();
+  e.stopPropagation();
+}
 
 ['dragenter', 'dragover'].forEach(eventName => {
-  dropContainer.addEventListener(eventName, e => dropContainer.classList.add('highlight'), false)
+  dropContainer.addEventListener(eventName, e => dropContainer.classList.add('highlight'), false);
 });
 
 ['dragleave', 'drop'].forEach(eventName => {
-  dropContainer.addEventListener(eventName, e => dropContainer.classList.remove('highlight'), false)
+  dropContainer.addEventListener(eventName, e => dropContainer.classList.remove('highlight'), false);
 });
 
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-  dropContainer.addEventListener(eventName, preventDefaults, false)
+  dropContainer.addEventListener(eventName, preventDefaults, false);
 });
 
-dropContainer.addEventListener('drop', gotImage, false)
+dropContainer.addEventListener('drop', gotImage, false);
+fileInput.addEventListener('change', (e) => gotImage({ dataTransfer: { files: e.target.files } }));
 
 function gotImage(e) {
   const dt = e.dataTransfer;
   const files = dt.files;
+
   if (files.length > 1) {
-    console.error('upload only one file');
+    console.error('Upload only one file');
+    return;
   }
+
   const file = files[0];
-  const imageType = /image.*/;
-  if (file.type.match(imageType)) {
-    warning.innerHTML = '';
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => {
-      image.src = reader.result;
-      setTimeout(classifyImage, 100);
-    }
-  } else {
-    image.src = 'images/bird.jpg';
-    setTimeout(classifyImage, 100);
-    warning.innerHTML = 'Please drop an image file.'
-  }
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+
+  reader.onloadend = () => {
+    image.src = reader.result;
+    image.onload = classifyImage;
+  };
 }
-
-function handleFiles() {
-  const curFiles = fileInput.files;
-  if (curFiles.length === 0) {
-    image.src = 'images/bird.jpg';
-    setTimeout(classifyImage, 100);
-    warning.innerHTML = 'No image selected for upload';
-  } else {
-    image.src = window.URL.createObjectURL(curFiles[0]);
-    warning.innerHTML = '';
-    setTimeout(classifyImage, 100);
-  }
-}
-
-function clickUploader() {
-  fileInput.click();
-}
-
-const result = document.getElementById('result'); 
-const probability = document.getElementById('probability'); 
-
-const classifier = ml5.imageClassifier('Mobilenet', () => {});
-
-// Make a prediction with the selected image
-// This will return an array with a default of 10 options with their probabilities
-classifyImage();
 
 function classifyImage() {
-  classifier.predict(image, (err, results) => {
-    let resultTxt = results[0].className;
-    result.innerText = resultTxt;
-    let prob = 100 * results[0].probability;
-    probability.innerText = Number.parseFloat(prob).toFixed(2) + '%';
+  resultsBox.innerHTML = "🔍 Classifying...";
+  const classifier = ml5.imageClassifier('MobileNet', () => {
+    classifier.classify(image, 5, (err, results) => {
+      if (err) {
+        console.error(err);
+        resultsBox.innerHTML = "❌ Error during classification.";
+        return;
+      }
+
+      resultsBox.innerHTML = "<h3>Top Predictions:</h3>";
+      results.forEach((res, index) => {
+        const line = `${index + 1}. ${res.label} - ${(res.confidence * 100).toFixed(2)}%`;
+        const p = document.createElement('p');
+        p.textContent = line;
+        resultsBox.appendChild(p);
+      });
+    });
   });
 }
-
