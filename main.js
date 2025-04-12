@@ -10,11 +10,11 @@ function preventDefaults(e) {
 }
 
 ['dragenter', 'dragover'].forEach(eventName => {
-  dropContainer.addEventListener(eventName, e => dropContainer.classList.add('highlight'), false);
+  dropContainer.addEventListener(eventName, () => dropContainer.classList.add('highlight'), false);
 });
 
 ['dragleave', 'drop'].forEach(eventName => {
-  dropContainer.addEventListener(eventName, e => dropContainer.classList.remove('highlight'), false);
+  dropContainer.addEventListener(eventName, () => dropContainer.classList.remove('highlight'), false);
 });
 
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -22,7 +22,11 @@ function preventDefaults(e) {
 });
 
 dropContainer.addEventListener('drop', gotImage, false);
-fileInput.addEventListener('change', (e) => gotImage({ dataTransfer: { files: e.target.files } }));
+fileInput.addEventListener('change', e => gotImage({ dataTransfer: { files: e.target.files } }));
+
+function clickUploader() {
+  fileInput.click();
+}
 
 function gotImage(e) {
   const dt = e.dataTransfer;
