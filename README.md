@@ -13,7 +13,7 @@ It should be noted that the pre-trained model provided by the example below was 
 
 ---
 
-### Live Here : https://imageclassifier.netlify.app/
+### Live Here : https://image-classifer-anant.netlify.app
 
 ### References Used:
 1) https://learn.ml5js.org/#/reference/image-classifier
