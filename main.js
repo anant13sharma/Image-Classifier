@@ -4,6 +4,19 @@ const warning = document.getElementById('warning');
 const fileInput = document.getElementById('fileUploader');
 const resultsBox = document.getElementById('results');
 
+let classifier;
+
+// 🔁 Load MobileNet model once
+ml5.imageClassifier('MobileNet')
+  .then(c => {
+    classifier = c;
+    console.log('✅ Model Loaded');
+  })
+  .catch(err => {
+    resultsBox.innerHTML = '❌ Failed to load model.';
+    console.error(err);
+  });
+
 function preventDefaults(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -33,7 +46,7 @@ function gotImage(e) {
   const files = dt.files;
 
   if (files.length > 1) {
-    console.error('Upload only one file');
+    warning.innerText = 'Please upload only one file.';
     return;
   }
 
@@ -43,27 +56,31 @@ function gotImage(e) {
 
   reader.onloadend = () => {
     image.src = reader.result;
-    image.onload = classifyImage;
+    image.onload = () => classifyImage(); // wait for image to be fully rendered
   };
 }
 
 function classifyImage() {
-  resultsBox.innerHTML = "🔍 Classifying...";
-  const classifier = ml5.imageClassifier('MobileNet', () => {
-    classifier.classify(image, 5, (err, results) => {
-      if (err) {
-        console.error(err);
-        resultsBox.innerHTML = "❌ Error during classification.";
-        return;
-      }
+  if (!classifier) {
+    resultsBox.innerHTML = '⏳ Model still loading...';
+    return;
+  }
 
-      resultsBox.innerHTML = "<h3>Top Predictions:</h3>";
-      results.forEach((res, index) => {
-        const line = `${index + 1}. ${res.label} - ${(res.confidence * 100).toFixed(2)}%`;
-        const p = document.createElement('p');
-        p.textContent = line;
-        resultsBox.appendChild(p);
-      });
+  resultsBox.innerHTML = "🔍 Classifying...";
+
+  classifier.classify(image, 5, (err, results) => {
+    if (err) {
+      console.error(err);
+      resultsBox.innerHTML = "❌ Error during classification.";
+      return;
+    }
+
+    resultsBox.innerHTML = "<h3>Top Predictions:</h3>";
+    results.forEach((res, index) => {
+      const line = `${index + 1}. ${res.label} - ${(res.confidence * 100).toFixed(2)}%`;
+      const p = document.createElement('p');
+      p.textContent = line;
+      resultsBox.appendChild(p);
     });
   });
 }
