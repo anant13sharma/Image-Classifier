@@ -1,82 +1,81 @@
-const image = document.getElementById('image');
+const image = document.getElementById('image'); // The image we want to classify
 const dropContainer = document.getElementById('container');
 const warning = document.getElementById('warning');
 const fileInput = document.getElementById('fileUploader');
-const resultsBox = document.getElementById('results');
-
-let classifier = null;
-
-// ✅ Load the model ONCE
-ml5.imageClassifier('MobileNet')
-  .then(model => {
-    classifier = model;
-    console.log("✅ Model loaded");
-  })
-  .catch(err => {
-    resultsBox.innerHTML = '❌ Failed to load model.';
-    console.error("Model load error:", err);
-  });
 
 function preventDefaults(e) {
-  e.preventDefault();
-  e.stopPropagation();
-}
+  e.preventDefault()
+  e.stopPropagation()
+};
 
 ['dragenter', 'dragover'].forEach(eventName => {
-  dropContainer.addEventListener(eventName, () => dropContainer.classList.add('highlight'), false);
-});
-['dragleave', 'drop'].forEach(eventName => {
-  dropContainer.addEventListener(eventName, () => dropContainer.classList.remove('highlight'), false);
-});
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-  dropContainer.addEventListener(eventName, preventDefaults, false);
+  dropContainer.addEventListener(eventName, e => dropContainer.classList.add('highlight'), false)
 });
 
-dropContainer.addEventListener('drop', gotImage, false);
-fileInput.addEventListener('change', e => gotImage({ dataTransfer: { files: e.target.files } }));
+['dragleave', 'drop'].forEach(eventName => {
+  dropContainer.addEventListener(eventName, e => dropContainer.classList.remove('highlight'), false)
+});
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+  dropContainer.addEventListener(eventName, preventDefaults, false)
+});
+
+dropContainer.addEventListener('drop', gotImage, false)
+
+function gotImage(e) {
+  const dt = e.dataTransfer;
+  const files = dt.files;
+  if (files.length > 1) {
+    console.error('upload only one file');
+  }
+  const file = files[0];
+  const imageType = /image.*/;
+  if (file.type.match(imageType)) {
+    warning.innerHTML = '';
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      image.src = reader.result;
+      setTimeout(classifyImage, 100);
+    }
+  } else {
+    image.src = 'images/bird.jpg';
+    setTimeout(classifyImage, 100);
+    warning.innerHTML = 'Please drop an image file.'
+  }
+}
+
+function handleFiles() {
+  const curFiles = fileInput.files;
+  if (curFiles.length === 0) {
+    image.src = 'images/bird.jpg';
+    setTimeout(classifyImage, 100);
+    warning.innerHTML = 'No image selected for upload';
+  } else {
+    image.src = window.URL.createObjectURL(curFiles[0]);
+    warning.innerHTML = '';
+    setTimeout(classifyImage, 100);
+  }
+}
 
 function clickUploader() {
   fileInput.click();
 }
 
-function gotImage(e) {
-  const dt = e.dataTransfer;
-  const files = dt.files;
+const result = document.getElementById('result'); 
+const probability = document.getElementById('probability'); 
 
-  if (files.length > 1) {
-    warning.innerText = 'Please upload only one file.';
-    return;
-  }
+const classifier = ml5.imageClassifier('Mobilenet', () => {});
 
-  const file = files[0];
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onloadend = () => {
-    image.src = reader.result;
-    image.onload = () => classifyImage();
-  };
-}
+// Make a prediction with the selected image
+// This will return an array with a default of 10 options with their probabilities
+classifyImage();
 
 function classifyImage() {
-  if (!classifier) {
-    resultsBox.innerHTML = '⏳ Model still loading...';
-    return;
-  }
-
-  resultsBox.innerHTML = "🔍 Classifying...";
-
-  classifier.classify(image, 5, (err, results) => {
-    if (err) {
-      console.error(err);
-      resultsBox.innerHTML = "❌ Classification failed.";
-      return;
-    }
-
-    resultsBox.innerHTML = "<h3>Top Predictions:</h3>";
-    results.forEach((res, i) => {
-      const p = document.createElement('p');
-      p.textContent = `${i + 1}. ${res.label} – ${(res.confidence * 100).toFixed(2)}%`;
-      resultsBox.appendChild(p);
-    });
+  classifier.predict(image, (err, results) => {
+    let resultTxt = results[0].className;
+    result.innerText = resultTxt;
+    let prob = 100 * results[0].probability;
+    probability.innerText = Number.parseFloat(prob).toFixed(2) + '%';
   });
 }
