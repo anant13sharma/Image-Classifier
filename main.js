@@ -4,13 +4,13 @@ const warning = document.getElementById('warning');
 const fileInput = document.getElementById('fileUploader');
 const resultsBox = document.getElementById('results');
 
-let classifier;
+let classifier; // Global model variable
 
-// 🔁 Load MobileNet model once
+// ✅ Load model once, on page load
 ml5.imageClassifier('MobileNet')
   .then(c => {
     classifier = c;
-    console.log('✅ Model Loaded');
+    console.log("✅ Model loaded");
   })
   .catch(err => {
     resultsBox.innerHTML = '❌ Failed to load model.';
@@ -56,13 +56,13 @@ function gotImage(e) {
 
   reader.onloadend = () => {
     image.src = reader.result;
-    image.onload = () => classifyImage(); // wait for image to be fully rendered
+    image.onload = () => classifyImage(); // Make sure image is rendered before classifying
   };
 }
 
 function classifyImage() {
   if (!classifier) {
-    resultsBox.innerHTML = '⏳ Model still loading...';
+    resultsBox.innerHTML = '⏳ Model still loading... please wait.';
     return;
   }
 
