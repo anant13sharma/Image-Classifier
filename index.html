@@ -33,13 +33,14 @@
         </div>
         
         <script src="main.js"></script>
-        <footer style="text-align: center; margin-top: 40px; font-size: 0.9em; color: gray;">
-    <p id="copyright"></p>
-    <script>
-        const year = new Date().getFullYear();
-        document.getElementById("copyright").innerText = `© ${year} Anant Sharma. All rights reserved.`;
-    </script>
+<footer style="text-align:center; font-size:0.75em; color:#666; padding:8px 0; width:100%;">
+  <p id="copyright" style="margin:0;"></p>
+  <script>
+    document.getElementById("copyright").textContent =
+      `© ${new Date().getFullYear()} Anant Sharma. All rights reserved.`;
+  </script>
 </footer>
+
 
     </body>
 </html>
