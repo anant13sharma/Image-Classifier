@@ -8,8 +8,8 @@ It should be noted that the pre-trained model provided by the example below was 
 
 ---
 
+![ezgif com-animated-gif-maker-2](https://github.com/user-attachments/assets/9b9007e4-d5dc-4f2a-a1db-7daf77273e26)
 
-<p align="center"><img src="./ss.png" width="800"></p>
 
 ---
 
